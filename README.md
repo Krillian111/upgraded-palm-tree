@@ -1,12 +1,23 @@
 # Readme
 
-## Miscellaneous Notes
+Note: Subsections are ordered in reversed order of implementation to have the most relevant section about the API first.
 
-### Setup
+## Docker Setup
+
+- Simple compose to allow running app with attached database
+- By starting the database by itself (`docker compose up -d db`), it can also be used for running the e2e tests.
+
+## Database Setup
+
+- DB credentials are hard coded for simplicity, usually these would be passed as part of the environment config, e.g.
+  via [NestJSs config module](https://docs.nestjs.com/techniques/configuration)
+- `synchronize:true` only for quick setup, usually I would initialize the db (including the initial schema) via SQL script and after that leverage TypeORM migrations
+
+## Initial Setup
 
 - Created new project using `@nestjs/cli@6.10` to conform with the version requirements. However, this lead to a few
   dependency issues caused by the starter project. I was forced to adjust/pin certain dependencies to not get stuck on
-  this. For the sake of completeness, here are some of the issues that helped me resolve the problem:
+  this. For the sake of completeness, here are some of the issues I had to resolve:
   - pinning `jest` with version `>=25.x`
   - [@types/webpack and @types/tapable](https://github.com/nestjs/nest/issues/6758)
   - pinning `@types/express-serve-static-core` explicitly to a version that is compatible with `@types/node@16` (to be compatible with node@16)
