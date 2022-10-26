@@ -2,6 +2,42 @@
 
 Note: Subsections are ordered in reversed order of implementation to have the most relevant section about the API first.
 
+## Optional
+
+- Authentication/Authorization (skipped due to time)
+- finalize create
+- add update/delete
+
+## TODO
+
+- exception handling
+- GET /services
+  - pagination (go into detail about design choice)
+  - filter/search (exact match on name only)
+  - sorting (lexicographical by name, elaborate on other options)
+  - return limited data model of service
+- GET /services/{service_id}
+  - return full data model of service
+  - expand option for version
+- GET /services/{service_id}/versions/{version_id}
+  - return full data model of version
+
+## API design consideration
+
+### Data modeling
+
+- auto increment primary keys because it is unnecessary to introduce the performance overhead of a uuid without leveraging
+  any of its properties
+
+### Misc
+
+- Added simple POST to enable easier automatic and manual testing
+
+## Test Setup
+
+- As the repo mocks grow over time, I would probably move to something like ts-auto-mock unless there is something more
+  convenient/appropriate already built into NestJS.
+
 ## Docker Setup
 
 - Simple compose to allow running app with attached database

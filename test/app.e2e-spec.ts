@@ -14,6 +14,9 @@ describe('app', () => {
     app = moduleFixture.createNestApplication();
     await app.init();
   });
+  afterEach(async () => {
+    await app.close();
+  });
 
   describe('GET /healthcheck', () => {
     it('returns app OK', () => {
