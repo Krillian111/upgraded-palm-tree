@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ServicesController } from './services.controller';
 import { ServicesService } from './services.service';
 import { ServicesRepositoryMock } from './__mocks/services.repository.mock';
+import { createMockService } from './entities/__mocks/Services.mock';
 
 describe('ServicesController', () => {
   let servicesController: ServicesController;
@@ -18,10 +19,15 @@ describe('ServicesController', () => {
   });
 
   describe('getAll', () => {
-    it('nests the service response in an object', () => {
-      jest.spyOn(servicesService, 'findAll').mockResolvedValue([]);
-      expect(servicesController.getAll()).resolves.toEqual({ services: [] });
-    });
+    it.each([[[]], [[createMockService({ collapsed: true })]]])(
+      'nests the service response in an object',
+      serviceReturn => {
+        jest.spyOn(servicesService, 'findAll').mockResolvedValue(serviceReturn);
+        expect(servicesController.getAll()).resolves.toEqual({
+          services: serviceReturn,
+        });
+      },
+    );
     it('throws service errors', () => {
       const serviceError = new Error('findAll failed');
       jest.spyOn(servicesService, 'findAll').mockRejectedValue(serviceError);
@@ -30,9 +36,7 @@ describe('ServicesController', () => {
   });
   describe('create', () => {
     it('returns service entity as is', () => {
-      const createdService = {
-        id: 1,
-      };
+      const createdService = createMockService();
       jest.spyOn(servicesService, 'create').mockResolvedValue(createdService);
       expect(servicesController.create()).resolves.toEqual({
         service: createdService,

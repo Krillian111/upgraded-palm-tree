@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ServicesService } from './services.service';
 import { ServicesRepositoryMock } from './__mocks/services.repository.mock';
-import { Service } from './entities/Service';
+import { createMockService } from './entities/__mocks/Services.mock';
 
 describe('ServicesService', () => {
   let servicesService: ServicesService;
@@ -13,9 +13,23 @@ describe('ServicesService', () => {
     servicesService = app.get<ServicesService>(ServicesService);
   });
   describe('findAll', () => {
-    it('returns an empty list', () => {
-      jest.spyOn(ServicesRepositoryMock.instance, 'find').mockResolvedValue([]);
-      expect(servicesService.findAll()).resolves.toEqual([]);
+    it.each([[[]], [[createMockService({ collapsed: true })]]])(
+      'passes on what find returns',
+      repoReturn => {
+        jest
+          .spyOn(ServicesRepositoryMock.instance, 'find')
+          .mockResolvedValue(repoReturn);
+        expect(servicesService.findAll()).resolves.toEqual(repoReturn);
+      },
+    );
+    it('selects subset of relevant columns', () => {
+      const repoSpy = jest
+        .spyOn(ServicesRepositoryMock.instance, 'find')
+        .mockResolvedValue([]);
+      servicesService.findAll();
+      expect(repoSpy).toBeCalledWith({
+        select: ['id', 'name', 'description', 'versions'],
+      });
     });
     it('throws database error', () => {
       const dbFindError = new Error('find failed');
@@ -28,9 +42,7 @@ describe('ServicesService', () => {
 
   describe('create', () => {
     it('creates and saves an entity', () => {
-      const toCreate: Service = {
-        id: 1,
-      };
+      const toCreate = createMockService();
       jest
         .spyOn(ServicesRepositoryMock.instance, 'create')
         .mockReturnValue(toCreate);

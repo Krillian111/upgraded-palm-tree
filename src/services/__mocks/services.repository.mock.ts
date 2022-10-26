@@ -6,7 +6,14 @@ class ServicesRepository {
     return [];
   }
   create(): Service {
-    return { id: 1 };
+    return {
+      id: 1,
+      name: 'some-name',
+      description: 'some-description',
+      versions: 2,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
   }
   async save(service: Service): Promise<Service> {
     return service;

@@ -10,11 +10,15 @@ export class ServicesService {
   ) {}
 
   findAll(): Promise<Service[]> {
-    return this.serviceRepo.find();
+    return this.serviceRepo.find({
+      select: ['id', 'name', 'description', 'versions'],
+    });
   }
 
   async create(): Promise<Service> {
-    const toCreate = this.serviceRepo.create();
+    const toCreate = this.serviceRepo.create({
+      name: 'Foo Service',
+    });
     return await this.serviceRepo.save(toCreate);
   }
 }

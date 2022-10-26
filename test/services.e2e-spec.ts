@@ -6,7 +6,20 @@ import { Repository } from 'typeorm';
 import { Service } from '../src/services/entities/Service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
-const serviceMatcher = { id: expect.any(Number) };
+const servicesMatcher = {
+  id: expect.any(Number),
+  name: expect.any(String),
+  description: expect.any(String),
+  versions: expect.any(Number),
+};
+const matchIsoDate = expect.stringMatching(
+  /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
+);
+const singleServiceMatcher = {
+  ...servicesMatcher,
+  createdAt: matchIsoDate,
+  updatedAt: matchIsoDate,
+};
 
 describe('services', () => {
   const servicesPath = '/services';
@@ -45,7 +58,7 @@ describe('services', () => {
         .expect(200)
         .expect('content-type', 'application/json; charset=utf-8');
       expect(response.body).toEqual({
-        services: [serviceMatcher, serviceMatcher],
+        services: [servicesMatcher, servicesMatcher],
       });
     });
   });
@@ -56,7 +69,7 @@ describe('services', () => {
         .expect(201)
         .expect('content-type', 'application/json; charset=utf-8');
       expect(response.body).toEqual({
-        service: serviceMatcher,
+        service: singleServiceMatcher,
       });
     });
   });

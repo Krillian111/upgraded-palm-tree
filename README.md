@@ -14,8 +14,8 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 - GET /services
   - pagination (go into detail about design choice)
   - filter/search (exact match on name only)
+    - add index on name
   - sorting (lexicographical by name, elaborate on other options)
-  - return limited data model of service
 - GET /services/{service_id}
   - return full data model of service
   - expand option for version
@@ -24,10 +24,17 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 ## API design consideration
 
-### Data modeling
+### GET /services
 
-- auto increment primary keys because it is unnecessary to introduce the performance overhead of a uuid without leveraging
+- Assuming the standard use case for this request is rendering the Services view, we can directly limit the columns
+  fetched from the database to not "overfetch".
+
+### Data modeling - General
+
+- Auto increment primary keys because it is unnecessary to introduce the performance overhead of a uuid without leveraging
   any of its properties
+- I tried to guess some reasonable limits for column sizes, e.g. description, name or value range for number types.
+  Whether these are appropriate or not obviously heavily depends on the actual use case.
 
 ### Misc
 
