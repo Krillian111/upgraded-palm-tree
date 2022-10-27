@@ -6,6 +6,12 @@ import { Repository } from 'typeorm';
 import { Service } from '../src/services/entities/Service';
 import { getRepositoryToken } from '@nestjs/typeorm';
 
+const servicesMetadataMatcher = {
+  offset: expect.any(Number),
+  limit: expect.any(Number),
+  count: expect.any(Number),
+};
+
 const servicesMatcher = {
   id: expect.any(Number),
   name: expect.any(String),
@@ -43,12 +49,15 @@ describe('services', () => {
   });
 
   describe('GET /services', () => {
-    it('returns an empty list of services', () => {
-      return request(app.getHttpServer())
+    it('returns an empty list of services', async () => {
+      const response = await request(app.getHttpServer())
         .get(servicesPath)
         .expect(200)
-        .expect('content-type', 'application/json; charset=utf-8')
-        .expect({ services: [] });
+        .expect('content-type', 'application/json; charset=utf-8');
+      expect(response.body).toEqual({
+        ...servicesMetadataMatcher,
+        services: [],
+      });
     });
     it('returns a list of services', async () => {
       await request(app.getHttpServer()).post(servicesPath);
@@ -57,6 +66,7 @@ describe('services', () => {
         .get(servicesPath)
         .expect(200);
       expect(response.body).toEqual({
+        ...servicesMetadataMatcher,
         services: [servicesMatcher, servicesMatcher],
       });
     });
@@ -88,16 +98,18 @@ describe('services', () => {
           .get(servicesPath)
           .query({ filter: 'BarService' })
           .expect(200);
-        expect(response.body).toEqual({
-          services: [{ ...servicesMatcher, name: 'BarService' }],
-        });
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            services: [{ ...servicesMatcher, name: 'BarService' }],
+          }),
+        );
       });
     });
     describe('sorting', () => {
       it.each([
         [{ sortOrder: 'ASC', expectedOrder: ['a', 'b', 'c'] }],
         [{ sortOrder: 'DESC', expectedOrder: ['c', 'b', 'a'] }],
-        [{ sortOrder: undefined, expectedOrder: ['a', 'b', 'c'] }],
+        [{ sortOrder: undefined, expectedOrder: ['a', 'c', 'b'] }],
       ])(
         'returns list of services sorted by name',
         async ({ sortOrder, expectedOrder }) => {
@@ -112,15 +124,82 @@ describe('services', () => {
             .get(servicesPath)
             .query({ sort: sortOrder })
             .expect(200);
-          expect(response.body).toEqual({
-            services: expectedOrder.map(name => ({ ...servicesMatcher, name })),
-          });
+          expect(response.body).toEqual(
+            expect.objectContaining({
+              services: expectedOrder.map(name => ({
+                ...servicesMatcher,
+                name,
+              })),
+            }),
+          );
         },
       );
       it('returns 400 for invalid sort parameter', async () => {
         return request(app.getHttpServer())
           .get(servicesPath)
           .query({ sort: 'invalid' })
+          .expect(400);
+      });
+    });
+    describe('pagination', () => {
+      it('returns a specific page when queried with offset and limit', async () => {
+        const ascendingNames = new Array(20)
+          .fill(null)
+          .map((_, idx) => String.fromCharCode('a'.charCodeAt(0) + idx));
+        await Promise.all(
+          ascendingNames.map(name =>
+            request(app.getHttpServer())
+              .post(servicesPath)
+              .send({ name }),
+          ),
+        );
+        const response1 = await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ offset: 0, limit: 5, sort: 'ASC' })
+          .expect(200);
+        expect(response1.body).toEqual({
+          services: ascendingNames
+            .slice(0, 5)
+            .map(name => ({ ...servicesMatcher, name })),
+          limit: 5,
+          offset: 0,
+          count: 20,
+        });
+        const response2 = await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ offset: 10, limit: 10, sort: 'ASC' })
+          .expect(200);
+        expect(response2.body).toEqual({
+          services: ascendingNames
+            .slice(10, 20)
+            .map(name => expect.objectContaining({ ...servicesMatcher, name })),
+          count: 20,
+          limit: 10,
+          offset: 10,
+        });
+      });
+      it('returns 400 for limits >100', async () => {
+        await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ offset: 0, limit: 101 })
+          .expect(400);
+      });
+      it.each([[{ limit: 'abc', offset: 10 }], [{ limit: 10, offset: null }]])(
+        'returns 400 for non-integer values',
+        async ({ limit, offset }) => {
+          await request(app.getHttpServer())
+            .get(servicesPath)
+            .query({ offset, limit })
+            .expect(400);
+        },
+      );
+      it.each([
+        [{ limit: undefined, offset: 10 }],
+        [{ limit: 10, offset: undefined }],
+      ])('returns 400 for missing limit or offset', async query => {
+        await request(app.getHttpServer())
+          .get(servicesPath)
+          .query(query)
           .expect(400);
       });
     });

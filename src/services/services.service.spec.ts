@@ -3,6 +3,7 @@ import { ServicesService, ValidSortOrder } from './services.service';
 import { ServicesRepositoryMock } from './__mocks/services.repository.mock';
 import { createMockService } from './entities/__mocks/Services.mock';
 
+const standardParams = { offset: 0, limit: 10 };
 describe('ServicesService', () => {
   let servicesService: ServicesService;
 
@@ -19,24 +20,30 @@ describe('ServicesService', () => {
         jest
           .spyOn(ServicesRepositoryMock.instance, 'find')
           .mockResolvedValue(repoReturn);
-        expect(servicesService.findAll({})).resolves.toEqual(repoReturn);
+        expect(servicesService.findAll(standardParams)).resolves.toEqual({
+          ...standardParams,
+          count: ServicesRepositoryMock.count,
+          services: repoReturn,
+        });
       },
     );
-    it('selects subset of relevant columns', () => {
+    it('selects subset of relevant columns', async () => {
       const repoSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
-      servicesService.findAll({});
-      expect(repoSpy).toBeCalledWith({
-        select: ['id', 'name', 'description', 'versions'],
-      });
+      await servicesService.findAll(standardParams);
+      expect(repoSpy).toBeCalledWith(
+        expect.objectContaining({
+          select: ['id', 'name', 'description', 'versions'],
+        }),
+      );
     });
-    it('filters for exact name matches', () => {
+    it('filters for exact name matches', async () => {
       const repoSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
       const exactName = 'someName';
-      servicesService.findAll({ exactName });
+      await servicesService.findAll({ ...standardParams, exactName });
       expect(repoSpy).toBeCalledWith(
         expect.objectContaining({
           where: { name: exactName },
@@ -48,20 +55,33 @@ describe('ServicesService', () => {
       [{ sortOrder: 'DESC', query: { order: { name: 'DESC' } } }],
     ])(
       'sorts by name',
-      ({ sortOrder, query }: { sortOrder: ValidSortOrder; query }) => {
+      async ({ sortOrder, query }: { sortOrder: ValidSortOrder; query }) => {
         const repoSpy = jest
           .spyOn(ServicesRepositoryMock.instance, 'find')
           .mockResolvedValue([]);
-        servicesService.findAll({ sortOrder });
+        await servicesService.findAll({ ...standardParams, sortOrder });
         expect(repoSpy).toBeCalledWith(expect.objectContaining(query));
       },
     );
-    it('throws database error', () => {
+    it('paginates by using limit and offset', async () => {
+      const offset = 10;
+      const limit = 20;
+      const repoSpy = jest
+        .spyOn(ServicesRepositoryMock.instance, 'find')
+        .mockResolvedValue([]);
+      await servicesService.findAll({ offset, limit });
+      expect(repoSpy).toBeCalledWith(
+        expect.objectContaining({ skip: offset, take: limit }),
+      );
+    });
+    it('throws database error', async () => {
       const dbFindError = new Error('find failed');
       jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockRejectedValue(dbFindError);
-      expect(() => servicesService.findAll({})).rejects.toEqual(dbFindError);
+      await expect(() =>
+        servicesService.findAll(standardParams),
+      ).rejects.toEqual(dbFindError);
     });
   });
 });

@@ -10,8 +10,6 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 ## TODO
 
-- GET /services
-  - pagination (go into detail about design choice)
 - GET /services/{service_id}
   - return full data model of service
   - expand option for version
@@ -24,21 +22,55 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 - Assuming the standard use case for this request is rendering the Services view, we can directly limit the columns
   fetched from the database to not "overfetch".
-- Filtering
-  - Query parameter `filter` is passed to the where clause to match with the name if it is present
-  - Added index to `name` column to speed up the matching. This is not always a no-brainer as it slows insert performance
-    but with the given UI, the frequency of such queries should be relatively high compared to the inserts.
-  - As the user input gets passed to our SQL query, we could think about specifying and enforcing a maximum length,
-    especially if the column has a max width anyway. This would avoid passing unnecessary long strings to the database.
-- Sorting
-  - Query parameter `sort` with values `ASC`/`DESC` is passed to order by name clause
-  - If we decide to sort by different columns than `name`, we could add a `sort_by` parameter later.
-  - Potentially we could sort by various columns and orders but the sorting I would expect as a user would be a
-    lexicographical sorting of the name. If no sorting parameter is supplied, I decided to default to an ascending order
-    like in a dictionary as this sounds like a sane default and would be more what a user expects than having the services
-    displayed in an arbitrary order based on the database insertion. However, one could obviously argue about this default.
-  - I manually implemented a validation of the sort parameter to only allow whitelisted values, but I am sure there is a
-    way to use a custom pipe for this instead.
+
+#### Pagination
+
+- I couldn't get `ParseIntPipe` to work with the fact that both parameters are optional, thus I had to manually build the
+  validation. Usually I would dig deeper because I am sure this is a common scenario. If it does not exist out of the box by
+  combining some pipes, I would probably write a Custom Pipeline instead.
+  Note: Floats are truncated to an integer, I didn't want to spend too much time on such a detail, one could obviously also reject such a value.
+- I opted for a simple `limit`+`offset` approach. The major drawback of it is the degrading performance for very large
+  tables. Judging from the mockup and how I expect the API to be used, I assume that a single user is not going to
+  have 100k+ services, thus the reduced complexity seemed to be a good tradeoff given the requirements.
+- The fact that we might miss an element or see duplicates when navigation and deletion intertwine does not seem like
+  a big concern given the use case.
+- If we wanted to support such huge amounts of services, we would probably move towards a cursor-based pagination but
+  that brings more complexity with it when it comes to a stable implementation of sorting, see [this blog as an example](https://shopify.engineering/pagination-relative-cursors).
+- The metadata for the pagination panel can be derived on the client side if we include `limit`, `offset` and `count`
+  in the response.
+  - back link: backlink-offset=max(0,offset-limit) OR disabled if offset=0
+  - forward link: forward-offset=offset+limit OR disabled if offset+limit>=count
+  - current page: (offset/limit)+1 as I assume that page 0 on the mockup was not intentional
+  - max page: count/limit
+- Returning the `count` to allow the max page to be displayed can be costly for large tables. If we expect very large
+  amounts of services to be returned, it might be worth thinking about dropping that requirement unless it adds a lot
+  of value.
+- An upper bound for `limit` (<=100) should ensure that we don't have to return an unreasonably large response.
+- Only supplying one or the other of `limit` and `offset` returns a 400 as there are various interpretations possible. Instead of pushing the client to fix this bug, we could alternatively ignore the input and use both default values
+  instead.
+- The default values are `12` for limit (from mockup) and an offset of `0`. This is primarily to avoid unintended huge
+  responses/backend processing time if a client forgets the parameters.
+
+#### Filtering / Search
+
+- Query parameter `filter` is passed to the where clause to match with the name if it is present.
+- If we decide to apply the filter to another column or multiple columns, we could either adjust the current behaviour
+  (breaking change) or introduce an additional `filter_by` parameter.
+- Added index to `name` column to speed up the matching. This is not always a no-brainer as it slows insert performance
+  but with the given UI, the frequency of such queries should be relatively high compared to the inserts.
+- As the user input gets passed to our SQL query, we could think about specifying and enforcing a maximum length,
+  especially if the column has a max width anyway. This would avoid passing unnecessary long strings to the database.
+
+#### Sorting
+
+- Query parameter `sort` with values `ASC`/`DESC` is passed to order by name clause
+- If we decide to sort by different columns than `name`, we could add a `sort_by` parameter later.
+- Potentially we could sort by various columns and orders but the sorting I would expect as a user would be a
+  lexicographical sorting of the name. If no sorting parameter is supplied, no sorting is done to not prematurely affect
+  query performance. One could also argue that forcing an `ASC` order would be good default if the main use case is the
+  GUI from the mockup.
+- I manually implemented a validation of the sort parameter to only allow whitelisted values, but I am sure there is a
+  way to use a custom pipe for this instead.
 
 ### Data modeling - General
 
@@ -63,6 +95,7 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 - As the repo mocks grow over time, I would probably move to something like ts-auto-mock unless there is something more
   convenient/appropriate already built into NestJS.
+- At least one of the tests is leaking a handle, usually I would investigate and fix this but in the interest of time, I left it for now. I assume it has something to do with the fact that the TypeORM module is recreated for every test and we might have to do some proper cleanup afterwards.
 
 ## Docker Setup
 
