@@ -60,19 +60,37 @@ describe('services', () => {
         services: [servicesMatcher, servicesMatcher],
       });
     });
-    it('returns a list of services with exact match of name', async () => {
-      await request(app.getHttpServer())
-        .post(servicesPath)
-        .send({ name: 'FooService' });
-      await request(app.getHttpServer())
-        .post(servicesPath)
-        .send({ name: 'BarService' });
-      const response = await request(app.getHttpServer())
-        .get(servicesPath)
-        .query({ filter: 'BarService' })
-        .expect(200);
-      expect(response.body).toEqual({
-        services: [{ ...servicesMatcher, name: 'BarService' }],
+    describe('errors', () => {
+      it('returns 500 with generic error message for internal error', async () => {
+        jest
+          .spyOn(serviceRepo, 'find')
+          .mockRejectedValueOnce(new Error('some db error'));
+        await request(app.getHttpServer())
+          .get(servicesPath)
+          .expect(500)
+          .expect({
+            // NestJS questions out of curiosity: Why is this message slightly
+            // different to new InternalServerErrorException().message?
+            statusCode: 500,
+            message: 'Internal server error',
+          });
+      });
+    });
+    describe('filter', () => {
+      it('returns a list of services with exact match of name', async () => {
+        await request(app.getHttpServer())
+          .post(servicesPath)
+          .send({ name: 'FooService' });
+        await request(app.getHttpServer())
+          .post(servicesPath)
+          .send({ name: 'BarService' });
+        const response = await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ filter: 'BarService' })
+          .expect(200);
+        expect(response.body).toEqual({
+          services: [{ ...servicesMatcher, name: 'BarService' }],
+        });
       });
     });
     describe('sorting', () => {

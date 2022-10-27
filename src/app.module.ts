@@ -14,7 +14,8 @@ import { ServicesModule } from './services/services.module';
       password: 'postgresPw',
       database: 'dbName',
       entities: [Service],
-      synchronize: true,
+      synchronize: true, // simplified setup
+      keepConnectionAlive: true, // allow connection reuse during tests
     }),
     ServicesModule,
   ],

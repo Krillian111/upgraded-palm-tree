@@ -10,7 +10,6 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 ## TODO
 
-- exception handling
 - GET /services
   - pagination (go into detail about design choice)
 - GET /services/{service_id}
