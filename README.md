@@ -2,11 +2,13 @@
 
 Note: Subsections are ordered in reversed order of implementation to have the most relevant section about the API first.
 
-## Optional
+## Skipped
 
-- Authentication/Authorization (skipped due to time)
-- finalize create
-- add update/delete
+As agreed I skipped the following topics:
+
+- Authentication/Authorization
+- Fully functioning create/update/delete
+  - There is only a very simplified post request for manual testing and e2e tests
 
 ## TODO
 
@@ -17,6 +19,10 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
   - return full data model of version
 
 ## API design consideration
+
+### GET /services/:service_id
+
+- Id validation uses `ParseIntPipe` which truncates floats. If that is not desired, one would probably have to implement a custom pipe.
 
 ### GET /services
 

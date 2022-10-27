@@ -1,5 +1,6 @@
 import { Service } from '../entities/Service';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { createMockService } from '../entities/__mocks/Services.mock';
 
 const mockCount = 3;
 class ServicesRepository {
@@ -21,6 +22,9 @@ class ServicesRepository {
   }
   async count(): Promise<number> {
     return mockCount;
+  }
+  async findOne(): Promise<Service> {
+    return createMockService();
   }
 }
 const instance = new ServicesRepository();

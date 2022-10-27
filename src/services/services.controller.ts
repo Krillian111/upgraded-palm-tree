@@ -3,6 +3,9 @@ import {
   Body,
   Controller,
   Get,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -81,12 +84,20 @@ export class ServicesController {
     );
   }
 
+  @Get(':id')
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    const service = await this.servicesService.findById(id);
+    if (!service) {
+      throw new NotFoundException(`No Service with id ${id}`);
+    }
+    return service;
+  }
+
   @Post()
   async create(@Body() createServiceDto: CreateServiceDto) {
     if (!createServiceDto.name) {
       createServiceDto.name = 'DefaultServiceName';
     }
-    const service = await this.servicesService.create(createServiceDto);
-    return { service };
+    return this.servicesService.create(createServiceDto);
   }
 }

@@ -204,6 +204,36 @@ describe('services', () => {
       });
     });
   });
+  describe('GET /services/:service_id', () => {
+    it('returns all properties of a single service', async () => {
+      const postedService = { name: 'SingleService' };
+      const postResponse = await request(app.getHttpServer())
+        .post(servicesPath)
+        .send(postedService);
+      const getResponse = await request(app.getHttpServer())
+        .get(`${servicesPath}/${postResponse.body.id}`)
+        .expect(200)
+        .expect('content-type', 'application/json; charset=utf-8');
+      expect(getResponse.body).toEqual({
+        ...singleServiceMatcher,
+        ...postedService,
+      });
+    });
+    it('returns 404 for non-existing service', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`${servicesPath}/123`)
+        .expect(404);
+      expect(response.body.message).toEqual('No Service with id 123');
+    });
+    it.each(['invalidId', null])(
+      'returns 400 for non-numeric id',
+      async invalidId => {
+        await request(app.getHttpServer())
+          .get(`${servicesPath}/${invalidId}`)
+          .expect(400);
+      },
+    );
+  });
   describe('POST /services', () => {
     it('creates a service', async () => {
       const name = 'TestService';
@@ -212,9 +242,7 @@ describe('services', () => {
         .send({ name })
         .expect(201)
         .expect('content-type', 'application/json; charset=utf-8');
-      expect(response.body).toEqual({
-        service: { ...singleServiceMatcher, name },
-      });
+      expect(response.body).toEqual({ ...singleServiceMatcher, name });
     });
   });
 });

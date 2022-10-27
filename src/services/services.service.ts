@@ -45,6 +45,10 @@ export class ServicesService {
     };
   }
 
+  async findById(id: number): Promise<Service> {
+    return this.serviceRepo.findOne(id);
+  }
+
   async create(createServiceDto: CreateServiceDto): Promise<Service> {
     const toCreate = this.serviceRepo.create(createServiceDto);
     return await this.serviceRepo.save(toCreate);

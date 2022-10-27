@@ -28,23 +28,23 @@ describe('ServicesService', () => {
       },
     );
     it('selects subset of relevant columns', async () => {
-      const repoSpy = jest
+      const findSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
       await servicesService.findAll(standardParams);
-      expect(repoSpy).toBeCalledWith(
+      expect(findSpy).toBeCalledWith(
         expect.objectContaining({
           select: ['id', 'name', 'description', 'versions'],
         }),
       );
     });
     it('filters for exact name matches', async () => {
-      const repoSpy = jest
+      const findSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
       const exactName = 'someName';
       await servicesService.findAll({ ...standardParams, exactName });
-      expect(repoSpy).toBeCalledWith(
+      expect(findSpy).toBeCalledWith(
         expect.objectContaining({
           where: { name: exactName },
         }),
@@ -56,21 +56,21 @@ describe('ServicesService', () => {
     ])(
       'sorts by name',
       async ({ sortOrder, query }: { sortOrder: ValidSortOrder; query }) => {
-        const repoSpy = jest
+        const findSpy = jest
           .spyOn(ServicesRepositoryMock.instance, 'find')
           .mockResolvedValue([]);
         await servicesService.findAll({ ...standardParams, sortOrder });
-        expect(repoSpy).toBeCalledWith(expect.objectContaining(query));
+        expect(findSpy).toBeCalledWith(expect.objectContaining(query));
       },
     );
     it('paginates by using limit and offset', async () => {
       const offset = 10;
       const limit = 20;
-      const repoSpy = jest
+      const findSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
       await servicesService.findAll({ offset, limit });
-      expect(repoSpy).toBeCalledWith(
+      expect(findSpy).toBeCalledWith(
         expect.objectContaining({ skip: offset, take: limit }),
       );
     });
@@ -82,6 +82,27 @@ describe('ServicesService', () => {
       await expect(() =>
         servicesService.findAll(standardParams),
       ).rejects.toEqual(dbFindError);
+    });
+  });
+  describe('findById', () => {
+    it('returns single service from database', async () => {
+      const expected = createMockService();
+      const findOneSpy = jest
+        .spyOn(ServicesRepositoryMock.instance, 'findOne')
+        .mockResolvedValue(expected);
+      const id = 123;
+      const actual = await servicesService.findById(id);
+      expect(findOneSpy).toBeCalledWith(id);
+      expect(actual).toEqual(expected);
+    });
+    it('resolves to undefined if no service is found', async () => {
+      const findOneSpy = jest
+        .spyOn(ServicesRepositoryMock.instance, 'findOne')
+        .mockResolvedValue(undefined);
+      const id = 123;
+      const actual = await servicesService.findById(id);
+      expect(findOneSpy).toBeCalledWith(id);
+      expect(actual).toBeUndefined();
     });
   });
 });

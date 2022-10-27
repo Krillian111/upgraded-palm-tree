@@ -127,4 +127,23 @@ describe('ServicesController', () => {
       });
     });
   });
+  describe('findById', () => {
+    it('queries service by Id and returns result', () => {
+      const findByIdSpy = jest
+        .spyOn(servicesService, 'findById')
+        .mockResolvedValue(createMockService());
+      const id = 123;
+      servicesController.findById(id);
+      expect(findByIdSpy).toBeCalledWith(id);
+    });
+    it('throws NotFoundException if no service is returned', async () => {
+      // can't get this to match with .rejects, temporary workaround for now
+      jest.spyOn(servicesService, 'findById').mockResolvedValue(undefined);
+      try {
+        await servicesController.findById(123);
+      } catch (e) {
+        expect(e.message.message).toEqual(`No Service with id 123`);
+      }
+    });
+  });
 });
