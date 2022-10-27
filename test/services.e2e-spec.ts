@@ -61,15 +61,33 @@ describe('services', () => {
         services: [servicesMatcher, servicesMatcher],
       });
     });
+    it('returns a list of services with exact match of name', async () => {
+      await request(app.getHttpServer())
+        .post(servicesPath)
+        .send({ name: 'FooService' });
+      await request(app.getHttpServer())
+        .post(servicesPath)
+        .send({ name: 'BarService' });
+      const response = await request(app.getHttpServer())
+        .get(servicesPath)
+        .query({ filter: 'BarService' })
+        .expect(200)
+        .expect('content-type', 'application/json; charset=utf-8');
+      expect(response.body).toEqual({
+        services: [{ ...servicesMatcher, name: 'BarService' }],
+      });
+    });
   });
   describe('POST /services', () => {
     it('creates a service', async () => {
+      const name = 'TestService';
       const response = await request(app.getHttpServer())
         .post(servicesPath)
+        .send({ name })
         .expect(201)
         .expect('content-type', 'application/json; charset=utf-8');
       expect(response.body).toEqual({
-        service: singleServiceMatcher,
+        service: { ...singleServiceMatcher, name },
       });
     });
   });

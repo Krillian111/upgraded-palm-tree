@@ -19,45 +19,36 @@ describe('ServicesService', () => {
         jest
           .spyOn(ServicesRepositoryMock.instance, 'find')
           .mockResolvedValue(repoReturn);
-        expect(servicesService.findAll()).resolves.toEqual(repoReturn);
+        expect(servicesService.findAll({})).resolves.toEqual(repoReturn);
       },
     );
     it('selects subset of relevant columns', () => {
       const repoSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockResolvedValue([]);
-      servicesService.findAll();
+      servicesService.findAll({});
       expect(repoSpy).toBeCalledWith({
         select: ['id', 'name', 'description', 'versions'],
       });
+    });
+    it('filters for exact name matches', () => {
+      const repoSpy = jest
+        .spyOn(ServicesRepositoryMock.instance, 'find')
+        .mockResolvedValue([]);
+      const exactName = 'someName';
+      servicesService.findAll({ exactName });
+      expect(repoSpy).toBeCalledWith(
+        expect.objectContaining({
+          where: { name: exactName },
+        }),
+      );
     });
     it('throws database error', () => {
       const dbFindError = new Error('find failed');
       jest
         .spyOn(ServicesRepositoryMock.instance, 'find')
         .mockRejectedValue(dbFindError);
-      expect(() => servicesService.findAll()).rejects.toEqual(dbFindError);
-    });
-  });
-
-  describe('create', () => {
-    it('creates and saves an entity', () => {
-      const toCreate = createMockService();
-      jest
-        .spyOn(ServicesRepositoryMock.instance, 'create')
-        .mockReturnValue(toCreate);
-      jest
-        .spyOn(ServicesRepositoryMock.instance, 'save')
-        .mockResolvedValue({ ...toCreate });
-      expect(servicesService.create()).resolves.toEqual(toCreate);
-      expect(ServicesRepositoryMock.instance.save).toBeCalledWith(toCreate);
-    });
-    it('throws db save error', () => {
-      const dbSaveError = new Error('create failed');
-      jest
-        .spyOn(ServicesRepositoryMock.instance, 'save')
-        .mockRejectedValue(dbSaveError);
-      expect(() => servicesService.create()).rejects.toEqual(dbSaveError);
+      expect(() => servicesService.findAll({})).rejects.toEqual(dbFindError);
     });
   });
 });

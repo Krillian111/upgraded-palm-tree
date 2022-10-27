@@ -28,24 +28,18 @@ describe('ServicesController', () => {
         });
       },
     );
+    it('passes the filter to service', () => {
+      const findAllSpy = jest
+        .spyOn(servicesService, 'findAll')
+        .mockResolvedValue([]);
+      servicesController.getAll('someFilter');
+      expect(findAllSpy).toBeCalledWith({ exactName: 'someFilter' });
+    });
+
     it('throws service errors', () => {
       const serviceError = new Error('findAll failed');
       jest.spyOn(servicesService, 'findAll').mockRejectedValue(serviceError);
       expect(servicesController.getAll()).rejects.toEqual(serviceError);
-    });
-  });
-  describe('create', () => {
-    it('returns service entity as is', () => {
-      const createdService = createMockService();
-      jest.spyOn(servicesService, 'create').mockResolvedValue(createdService);
-      expect(servicesController.create()).resolves.toEqual({
-        service: createdService,
-      });
-    });
-    it('throws service errors', () => {
-      const serviceError = new Error('create failed');
-      jest.spyOn(servicesService, 'create').mockRejectedValue(serviceError);
-      expect(servicesController.create()).rejects.toEqual(serviceError);
     });
   });
 });

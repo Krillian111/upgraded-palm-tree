@@ -13,8 +13,6 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 - exception handling
 - GET /services
   - pagination (go into detail about design choice)
-  - filter/search (exact match on name only)
-    - add index on name
   - sorting (lexicographical by name, elaborate on other options)
 - GET /services/{service_id}
   - return full data model of service
@@ -28,6 +26,12 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 
 - Assuming the standard use case for this request is rendering the Services view, we can directly limit the columns
   fetched from the database to not "overfetch".
+- Filtering
+  - Query parameter `filter` is passed to the where clause to match with the name if it is present
+  - Added index to `name` column to speed up the matching. This is not always a no-brainer as it slows insert performance
+    but with the given UI, the frequency of such queries should be relatively high compared to the inserts.
+  - As the user input gets passed to our SQL query, we could think about specifying and enforcing a maximum length,
+    especially if the column has a max width anyway. This would avoid passing unnecessary long strings to the database.
 
 ### Data modeling - General
 
@@ -36,9 +40,17 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 - I tried to guess some reasonable limits for column sizes, e.g. description, name or value range for number types.
   Whether these are appropriate or not obviously heavily depends on the actual use case.
 
+### Security
+
+- SQL injection: As far as I understand TypeORM translates queries like `find({where: someUserInput})` into a prepared
+  statement, thus no escaping is necessary. Ideally I would take the time to actually verify this by double-checking the generated/used SQL. In addition, it would be a good idea to have a simple test verifying this to prevent regression in case there is a bug introduced into TypeORM at a later stage.
+
 ### Misc
 
 - Added simple POST to enable easier automatic and manual testing
+  - I explicitly do not perform any validation on the input due to the scope of the project. Usually I would use something like the [validators offered by NestJS](https://docs.nestjs.com/techniques/validation)
+  - I also skipped writing unit tests for this because it does not represent a proper implementation and was only for
+    testing the GET endpoints. I added some integration tests to make sure it fulfills its testing purpose.
 
 ## Test Setup
 

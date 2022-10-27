@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -12,6 +13,7 @@ export class Service {
   id: number;
 
   @Column('varchar', { length: 60 })
+  @Index({ unique: false })
   name: string;
 
   @Column('varchar', { length: 200, default: '' })

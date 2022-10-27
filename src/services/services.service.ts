@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/Service';
-import { Repository } from 'typeorm';
+import { FindManyOptions, Repository } from 'typeorm';
+import { CreateServiceDto } from './dto/CreateServiceDto';
 
 @Injectable()
 export class ServicesService {
@@ -9,16 +10,18 @@ export class ServicesService {
     @InjectRepository(Service) private serviceRepo: Repository<Service>,
   ) {}
 
-  findAll(): Promise<Service[]> {
-    return this.serviceRepo.find({
+  findAll(params: { exactName?: string }): Promise<Service[]> {
+    let findOptions: FindManyOptions<Service> = {
       select: ['id', 'name', 'description', 'versions'],
-    });
+    };
+    if (params.exactName) {
+      findOptions = { ...findOptions, where: { name: params.exactName } };
+    }
+    return this.serviceRepo.find(findOptions);
   }
 
-  async create(): Promise<Service> {
-    const toCreate = this.serviceRepo.create({
-      name: 'Foo Service',
-    });
+  async create(createServiceDto: CreateServiceDto): Promise<Service> {
+    const toCreate = this.serviceRepo.create(createServiceDto);
     return await this.serviceRepo.save(toCreate);
   }
 }
