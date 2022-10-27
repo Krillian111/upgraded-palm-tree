@@ -55,8 +55,7 @@ describe('services', () => {
       await request(app.getHttpServer()).post(servicesPath);
       const response = await request(app.getHttpServer())
         .get(servicesPath)
-        .expect(200)
-        .expect('content-type', 'application/json; charset=utf-8');
+        .expect(200);
       expect(response.body).toEqual({
         services: [servicesMatcher, servicesMatcher],
       });
@@ -71,10 +70,40 @@ describe('services', () => {
       const response = await request(app.getHttpServer())
         .get(servicesPath)
         .query({ filter: 'BarService' })
-        .expect(200)
-        .expect('content-type', 'application/json; charset=utf-8');
+        .expect(200);
       expect(response.body).toEqual({
         services: [{ ...servicesMatcher, name: 'BarService' }],
+      });
+    });
+    describe('sorting', () => {
+      it.each([
+        [{ sortOrder: 'ASC', expectedOrder: ['a', 'b', 'c'] }],
+        [{ sortOrder: 'DESC', expectedOrder: ['c', 'b', 'a'] }],
+        [{ sortOrder: undefined, expectedOrder: ['a', 'b', 'c'] }],
+      ])(
+        'returns list of services sorted by name',
+        async ({ sortOrder, expectedOrder }) => {
+          await Promise.all(
+            ['a', 'c', 'b'].map(name => {
+              return request(app.getHttpServer())
+                .post(servicesPath)
+                .send({ name });
+            }),
+          );
+          const response = await request(app.getHttpServer())
+            .get(servicesPath)
+            .query({ sort: sortOrder })
+            .expect(200);
+          expect(response.body).toEqual({
+            services: expectedOrder.map(name => ({ ...servicesMatcher, name })),
+          });
+        },
+      );
+      it('returns 400 for invalid sort parameter', async () => {
+        return request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ sort: 'invalid' })
+          .expect(400);
       });
     });
   });

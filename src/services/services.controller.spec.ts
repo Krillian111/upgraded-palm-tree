@@ -28,14 +28,34 @@ describe('ServicesController', () => {
         });
       },
     );
-    it('passes the filter to service', () => {
+    it('passes the filter param to service', () => {
       const findAllSpy = jest
         .spyOn(servicesService, 'findAll')
         .mockResolvedValue([]);
       servicesController.getAll('someFilter');
       expect(findAllSpy).toBeCalledWith({ exactName: 'someFilter' });
     });
-
+    it.each([
+      [{ sortFromQuery: 'ASC', passedParam: 'ASC' }],
+      [{ sortFromQuery: 'DESC', passedParam: 'DESC' }],
+      [{ sortFromQuery: undefined, passedParam: undefined }],
+    ])(
+      'passes a valid sort param to service',
+      ({ sortFromQuery, passedParam }) => {
+        const findAllSpy = jest
+          .spyOn(servicesService, 'findAll')
+          .mockResolvedValue([]);
+        servicesController.getAll(undefined, sortFromQuery);
+        expect(findAllSpy).toBeCalledWith({ sortOrder: passedParam });
+      },
+    );
+    it('rejects invalid sort values by throwing a 400 HttpException', async () => {
+      await expect(() =>
+        servicesController.getAll(undefined, 'invalid'),
+      ).rejects.toThrow(
+        "Invalid 'sort' parameter - expected 'ASC' or 'DESC' but received invalid",
+      );
+    });
     it('throws service errors', () => {
       const serviceError = new Error('findAll failed');
       jest.spyOn(servicesService, 'findAll').mockRejectedValue(serviceError);

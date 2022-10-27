@@ -10,12 +10,18 @@ export class ServicesService {
     @InjectRepository(Service) private serviceRepo: Repository<Service>,
   ) {}
 
-  findAll(params: { exactName?: string }): Promise<Service[]> {
-    let findOptions: FindManyOptions<Service> = {
+  findAll(params: {
+    exactName?: string;
+    sortOrder?: ValidSortOrder;
+  }): Promise<Service[]> {
+    const findOptions: FindManyOptions<Service> = {
       select: ['id', 'name', 'description', 'versions'],
     };
     if (params.exactName) {
-      findOptions = { ...findOptions, where: { name: params.exactName } };
+      findOptions.where = { name: params.exactName };
+    }
+    if (params.sortOrder) {
+      findOptions.order = { name: params.sortOrder };
     }
     return this.serviceRepo.find(findOptions);
   }
@@ -25,3 +31,5 @@ export class ServicesService {
     return await this.serviceRepo.save(toCreate);
   }
 }
+
+export type ValidSortOrder = 'ASC' | 'DESC';

@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ServicesService } from './services.service';
+import { ServicesService, ValidSortOrder } from './services.service';
 import { ServicesRepositoryMock } from './__mocks/services.repository.mock';
 import { createMockService } from './entities/__mocks/Services.mock';
 
@@ -43,6 +43,19 @@ describe('ServicesService', () => {
         }),
       );
     });
+    it.each([
+      [{ sortOrder: 'ASC', query: { order: { name: 'ASC' } } }],
+      [{ sortOrder: 'DESC', query: { order: { name: 'DESC' } } }],
+    ])(
+      'sorts by name',
+      ({ sortOrder, query }: { sortOrder: ValidSortOrder; query }) => {
+        const repoSpy = jest
+          .spyOn(ServicesRepositoryMock.instance, 'find')
+          .mockResolvedValue([]);
+        servicesService.findAll({ sortOrder });
+        expect(repoSpy).toBeCalledWith(expect.objectContaining(query));
+      },
+    );
     it('throws database error', () => {
       const dbFindError = new Error('find failed');
       jest

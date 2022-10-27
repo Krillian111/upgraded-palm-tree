@@ -13,7 +13,6 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
 - exception handling
 - GET /services
   - pagination (go into detail about design choice)
-  - sorting (lexicographical by name, elaborate on other options)
 - GET /services/{service_id}
   - return full data model of service
   - expand option for version
@@ -32,6 +31,15 @@ Note: Subsections are ordered in reversed order of implementation to have the mo
     but with the given UI, the frequency of such queries should be relatively high compared to the inserts.
   - As the user input gets passed to our SQL query, we could think about specifying and enforcing a maximum length,
     especially if the column has a max width anyway. This would avoid passing unnecessary long strings to the database.
+- Sorting
+  - Query parameter `sort` with values `ASC`/`DESC` is passed to order by name clause
+  - If we decide to sort by different columns than `name`, we could add a `sort_by` parameter later.
+  - Potentially we could sort by various columns and orders but the sorting I would expect as a user would be a
+    lexicographical sorting of the name. If no sorting parameter is supplied, I decided to default to an ascending order
+    like in a dictionary as this sounds like a sane default and would be more what a user expects than having the services
+    displayed in an arbitrary order based on the database insertion. However, one could obviously argue about this default.
+  - I manually implemented a validation of the sort parameter to only allow whitelisted values, but I am sure there is a
+    way to use a custom pipe for this instead.
 
 ### Data modeling - General
 
