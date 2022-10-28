@@ -25,8 +25,8 @@ export class ServicesController {
     @Query('offset') offset?: string,
   ) {
     const sortOrder: ValidSortOrder | undefined = this.validateSortOrder(sort);
-    const parsedLimit = this.validateInteger('limit', limit, 100);
-    const parsedOffset = this.validateInteger('offset', offset);
+    const parsedLimit = this.validatePositiveInteger('limit', limit, 100);
+    const parsedOffset = this.validatePositiveInteger('offset', offset);
     this.validatePaginationInput(parsedLimit, parsedOffset);
 
     return await this.servicesService.findAll({
@@ -55,7 +55,7 @@ export class ServicesController {
     return ['ASC', 'DESC'].includes(toCheck);
   }
 
-  private validateInteger(
+  private validatePositiveInteger(
     paramName: string,
     toCheck?: string,
     maxValue?: number,
@@ -65,7 +65,11 @@ export class ServicesController {
     }
     const max = maxValue ?? Number.MAX_VALUE;
     const parsedValue = Number.parseInt(toCheck);
-    if (Number.isSafeInteger(parsedValue) && parsedValue <= max) {
+    if (
+      Number.isSafeInteger(parsedValue) &&
+      parsedValue <= max &&
+      parsedValue >= 0
+    ) {
       return parsedValue;
     }
     throw new BadRequestException(

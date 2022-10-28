@@ -62,7 +62,7 @@ group by service.id
 - Returning the `count` to allow the max page to be displayed can be costly for large tables. If we expect very large
   amounts of services to be returned, it might be worth thinking about dropping that requirement unless it adds a lot
   of value.
-- An upper bound for `limit` (<=100) should ensure that we don't have to return an unreasonably large response.
+- An upper bound for `limit` (<=100) should ensure that we don't have to return an unreasonably large response. Values <0 are also rejected for both `limit` and `offset`.
 - Only supplying one or the other of `limit` and `offset` returns a 400 as there are various interpretations possible. Instead of pushing the client to fix this bug, we could alternatively ignore the input and use both default values
   instead.
 - The default values are `12` for limit (from mockup) and an offset of `0`. This is primarily to avoid unintended huge

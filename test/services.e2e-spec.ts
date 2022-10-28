@@ -208,10 +208,10 @@ describe('services', () => {
           offset: 10,
         });
       });
-      it('returns 400 for limits >100', async () => {
+      it.each([-5, 101])('returns 400 for limits >100 or <0', async limit => {
         await request(app.getHttpServer())
           .get(servicesPath)
-          .query({ offset: 0, limit: 101 })
+          .query({ offset: 0, limit })
           .expect(400);
       });
       it.each([[{ limit: 'abc', offset: 10 }], [{ limit: 10, offset: null }]])(
