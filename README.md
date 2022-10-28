@@ -15,6 +15,8 @@ npm run test:e2e
 As agreed I skipped the following topics:
 
 - Authentication/Authorization
+  - As we already started discussing, in order to be useful/closer to a real-world use case, this would require a user entity (or id if we just use an identity provider) which would then need to be connected with the service entities.
+  - Alternatively one could only have an admin / non-admin separation which doesn't sound too useful for this particular setup.
 - Fully functioning create/update/delete
   - There is only a very simplified POST request for manual testing and e2e tests
 
@@ -91,10 +93,14 @@ group by service.id
 
 ### Data modeling - General
 
-- Auto increment primary keys because it is unnecessary to introduce the performance overhead of a uuid without leveraging
-  any of its properties
-- I tried to guess some reasonable limits for column sizes, e.g. description, name or value range for number types.
-  Whether these are appropriate or not obviously heavily depends on the actual use case.
+- Auto increment primary keys because it is unnecessary to introduce the performance overhead of a uuid without leveraging any of its properties
+- I tried to guess some reasonable limits for column sizes, e.g. description, name or value range for number types. Whether these are appropriate or not obviously heavily depends on the actual use case.
+- Both entities have a `createdAt` and `updatedAt` column to allow displaying this information (as it is often helpful) or for debugging purposes.
+
+#### Service / Version relationship
+
+- The relationship was modelled as `OneToMany` as one Version is just an "iteration" of one `Service` from what I understand.
+- I also added cascade on delete on the `Service` side as a `Version` without a `Service` has no real meaning. If `Version`s should be kept for historical reasons, one should probably just use a flag to turn the `Service` inactive instead. In general, the details of this exact modelling would heavily depend on the actual use cases.
 
 ### Security
 
