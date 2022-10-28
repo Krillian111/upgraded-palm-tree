@@ -16,7 +16,6 @@ import { Version } from './services/entities/Version';
       database: 'dbName',
       entities: [Service, Version],
       synchronize: true, // simplified setup
-      keepConnectionAlive: true, // allow connection reuse during tests
       dropSchema: true, // simple clear of the database after each test
     }),
     ServicesModule,

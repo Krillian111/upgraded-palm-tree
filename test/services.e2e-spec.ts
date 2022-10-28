@@ -61,10 +61,6 @@ describe('services', () => {
     serviceRepo = moduleFixture.get<Repository<Service>>(
       getRepositoryToken(Service),
     );
-    const services = await serviceRepo.find();
-    for (const service of services) {
-      await serviceRepo.delete(service.id);
-    }
 
     await app.init();
   });
@@ -130,33 +126,39 @@ describe('services', () => {
       });
     });
     describe('sorting', () => {
-      it.each([
-        [{ sortOrder: 'ASC', expectedOrder: ['a', 'b', 'c'] }],
-        [{ sortOrder: 'DESC', expectedOrder: ['c', 'b', 'a'] }],
-      ])(
-        'returns list of services sorted by name',
-        async ({ sortOrder, expectedOrder }) => {
-          await Promise.all(
-            ['a', 'c', 'b'].map(name => {
-              return request(app.getHttpServer())
-                .post(servicesPath)
-                .send({ name });
-            }),
-          );
-          const response = await request(app.getHttpServer())
-            .get(servicesPath)
-            .query({ sort: sortOrder })
-            .expect(200);
-          expect(response.body).toEqual(
-            expect.objectContaining({
-              services: expectedOrder.map(name => ({
-                ...servicesMatcher,
-                name,
-              })),
-            }),
-          );
-        },
-      );
+      it('returns list of services sorted by name', async () => {
+        await Promise.all(
+          ['a', 'c', 'b'].map(name => {
+            return request(app.getHttpServer())
+              .post(servicesPath)
+              .send({ name });
+          }),
+        );
+        const responseDesc = await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ sort: 'DESC' })
+          .expect(200);
+        expect(responseDesc.body).toEqual(
+          expect.objectContaining({
+            services: ['c', 'b', 'a'].map(name => ({
+              ...servicesMatcher,
+              name,
+            })),
+          }),
+        );
+        const responseAsc = await request(app.getHttpServer())
+          .get(servicesPath)
+          .query({ sort: 'ASC' })
+          .expect(200);
+        expect(responseAsc.body).toEqual(
+          expect.objectContaining({
+            services: ['a', 'b', 'c'].map(name => ({
+              ...servicesMatcher,
+              name,
+            })),
+          }),
+        );
+      });
       it('returns 400 for invalid sort parameter', async () => {
         return request(app.getHttpServer())
           .get(servicesPath)
