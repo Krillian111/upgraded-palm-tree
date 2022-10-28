@@ -133,13 +133,31 @@ describe('ServicesController', () => {
         .mockResolvedValue(createMockService());
       const id = 123;
       servicesController.findById(id);
-      expect(findByIdSpy).toBeCalledWith(id);
+      expect(findByIdSpy).toBeCalledWith(id, false);
+    });
+    it('passes expandVersions to service', () => {
+      const findByIdSpy = jest
+        .spyOn(servicesService, 'findById')
+        .mockResolvedValue(createMockService());
+      const id = 123;
+      servicesController.findById(id, 'true');
+      expect(findByIdSpy).toBeCalledWith(id, true);
+    });
+    it('passes expandVersions to service', async () => {
+      try {
+        await servicesController.findById(123, 'invalid');
+        fail('should throw if invalid expandVersions param is supplied');
+      } catch (e) {
+        expect(e.message.message).toEqual(
+          "Invalid expandVersions parameter - expected 'true' or 'false' but received invalid",
+        );
+      }
     });
     it('throws NotFoundException if no service is returned', async () => {
-      // can't get this to match with .rejects, temporary workaround for now
       jest.spyOn(servicesService, 'findById').mockResolvedValue(undefined);
       try {
         await servicesController.findById(123);
+        fail('should throw if no service is returned');
       } catch (e) {
         expect(e.message.message).toEqual(`No Service with id 123`);
       }

@@ -34,18 +34,23 @@ const versionMatcher = {
   createdAt: matchIsoDate,
   updatedAt: matchIsoDate,
 };
-const singleServiceMatcher = (versionCount: number) => ({
-  id: expect.any(Number),
-  name: expect.any(String),
-  description: expect.any(String),
-  versions: expect.arrayContaining(
-    new Array(versionCount)
-      .fill(null)
-      .map(() => expect.objectContaining(versionMatcher)),
-  ),
-  createdAt: matchIsoDate,
-  updatedAt: matchIsoDate,
-});
+const singleServiceMatcher = (versionCount: number | undefined) => {
+  const singleService: any = {
+    id: expect.any(Number),
+    name: expect.any(String),
+    description: expect.any(String),
+    createdAt: matchIsoDate,
+    updatedAt: matchIsoDate,
+  };
+  if (versionCount !== undefined) {
+    singleService.versions = expect.arrayContaining(
+      new Array(versionCount)
+        .fill(null)
+        .map(() => expect.objectContaining(versionMatcher)),
+    );
+  }
+  return singleService;
+};
 
 describe('services', () => {
   const servicesPath = '/services';
@@ -230,7 +235,7 @@ describe('services', () => {
     });
   });
   describe('GET /services/:service_id', () => {
-    it('returns all properties of a single service', async () => {
+    it('returns all top-level properties of a single service', async () => {
       const postedService = {
         name: 'SingleService',
         versions: [
@@ -246,6 +251,30 @@ describe('services', () => {
         .send(postedService);
       const getResponse = await request(app.getHttpServer())
         .get(`${servicesPath}/${postResponse.body.id}`)
+        .expect(200)
+        .expect('content-type', 'application/json; charset=utf-8');
+      expect(getResponse.body).toEqual({
+        ...singleServiceMatcher(undefined),
+        name: postedService.name,
+      });
+    });
+    it('returns nested version entity if expandService is passed', async () => {
+      const postedService = {
+        name: 'SingleService',
+        versions: [
+          {
+            label: 'SingleServiceV1',
+            status: 'Online',
+            description: 'Prod',
+          },
+        ],
+      };
+      const postResponse = await request(app.getHttpServer())
+        .post(servicesPath)
+        .send(postedService);
+      const getResponse = await request(app.getHttpServer())
+        .get(`${servicesPath}/${postResponse.body.id}`)
+        .query({ expandVersions: true })
         .expect(200)
         .expect('content-type', 'application/json; charset=utf-8');
       expect(getResponse.body).toEqual({

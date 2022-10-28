@@ -12,9 +12,6 @@ As agreed I skipped the following topics:
 
 ## TODO
 
-- GET /services/{service_id}
-  - return full data model of service
-  - expand option for version
 - GET /services/{service_id}/versions/{version_id}
   - return full data model of version
 
@@ -23,14 +20,14 @@ As agreed I skipped the following topics:
 ### GET /services/:service_id
 
 - Id validation uses `ParseIntPipe` which truncates floats. If that is not desired, one would probably have to implement a custom pipe.
-- Nested versions are automatically resolved and returned as I assume that the page displaying the specific service would also directly display the different versions. One could also add a parameter `expand_versions: boolean` to control this behaviour.
+- Nested versions are expanded if `expandVersions:true` is passed, otherwise the field `versions` is not included. One could also think about only returning the versionIds and then allow the client to fetch the details via something like `GET /services/:service_id/versions/:version_id`. However, this would require the join to resolve all the entities for every request, so it probably depends how large those grow and whether the client always needs that data.
+- If a value other than `true` or `false` is passed as `expandVersions`, 400 is returned. One could also just ignore it and default to false but I think it makes it easier for clients to find bugs if they get such feedback.
 
 ### GET /services
 
 - Assuming the standard use case for this request is rendering the Services view, we can directly limit the columns
   fetched from the database to not "overfetch".
-- Nested `versions` are discarded by default and only the count is returned with `versionCount`. The parameter has a different name to not return two different types (number and version[]) under the same key for different parameters.
-  - The versionCount could be fetched more efficiently by doing something like the following (instead of resolving all the relations) but I ended up just doing it at the application level because getting this right with the query manager would've taken some time and reading.
+- The versionCount could be fetched more efficiently by doing something like the following (instead of resolving all the relations) but I ended up just doing it at the application level because getting this right with the query manager would've taken some time and reading.
 
 ```
 select service.id,<...otherServiceCols>, count(version.id) as versionCount

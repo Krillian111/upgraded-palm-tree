@@ -85,12 +85,33 @@ export class ServicesController {
   }
 
   @Get(':id')
-  async findById(@Param('id', ParseIntPipe) id: number) {
-    const service = await this.servicesService.findById(id);
+  async findById(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('expandVersions') expandVersions?: string,
+  ) {
+    const parsedExpandVersions = this.parseBoolean(
+      'expandVersions',
+      expandVersions,
+    );
+    const service = await this.servicesService.findById(
+      id,
+      parsedExpandVersions,
+    );
     if (!service) {
       throw new NotFoundException(`No Service with id ${id}`);
     }
     return service;
+  }
+
+  private parseBoolean(paramName: string, value: string) {
+    if (value === undefined || value === 'false') {
+      return false;
+    } else if (value === 'true') {
+      return true;
+    } else
+      throw new BadRequestException(
+        `Invalid ${paramName} parameter - expected 'true' or 'false' but received ${value}`,
+      );
   }
 
   @Post()

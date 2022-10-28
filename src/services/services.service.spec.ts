@@ -99,10 +99,23 @@ describe('ServicesService', () => {
         .spyOn(ServicesRepositoryMock.instance, 'findOne')
         .mockResolvedValue(expected);
       const id = 123;
-      const actual = await servicesService.findById(id);
+      const actual = await servicesService.findById(id, true);
       expect(findOneSpy).toBeCalledWith(id, { relations: ['versions'] });
       expect(actual).toEqual(expected);
     });
+    it.each([false, undefined])(
+      'does not resolve relations for expandVersions!=true',
+      async expandVersions => {
+        const expected = createMockService();
+        const findOneSpy = jest
+          .spyOn(ServicesRepositoryMock.instance, 'findOne')
+          .mockResolvedValue(expected);
+        const id = 123;
+        const actual = await servicesService.findById(id, expandVersions);
+        expect(findOneSpy).toBeCalledWith(id, {});
+        expect(actual).toEqual(expected);
+      },
+    );
     it('resolves to undefined if no service is found', async () => {
       const findOneSpy = jest
         .spyOn(ServicesRepositoryMock.instance, 'findOne')
