@@ -1,6 +1,14 @@
 # Readme
 
-Note: Subsections are ordered in reversed order of implementation to have the most relevant section about the API first.
+- Note: Subsections are ordered in reversed order of implementation to have the most relevant section about the API first.
+- e2e tests can be executed by starting the database from the docker compose and then running the tests:
+
+```
+docker compose up -d db
+npm run test:e2e
+```
+
+- There is also an insomnia collection (`insomnia.json`) with a few requests for testing. The easiest way to manually test is to start app and db via docker compose, i.e. `docker compose up`.
 
 ## Skipped
 
@@ -8,12 +16,10 @@ As agreed I skipped the following topics:
 
 - Authentication/Authorization
 - Fully functioning create/update/delete
-  - There is only a very simplified post request for manual testing and e2e tests
+  - There is only a very simplified POST request for manual testing and e2e tests
 
-## TODO
-
-- GET /services/{service_id}/versions/{version_id}
-  - return full data model of version
+I also did not implement a dedicated endpoint for `GET /services/:service_id/versions/:version_id` as the
+`GET /services/:service_id` already includes an option via parameter `expandVersions` to fetch the version details. I hope that is still adequate as I think the current code should still give you a decent insight into how I work and this endpoint would be very similar to the `GET /services/:service_id`.
 
 ## API design consideration
 
@@ -38,9 +44,7 @@ group by service.id
 
 #### Pagination
 
-- I couldn't get `ParseIntPipe` to work with the fact that both parameters are optional, thus I had to manually build the
-  validation. Usually I would dig deeper because I am sure this is a common scenario. If it does not exist out of the box by
-  combining some pipes, I would probably write a Custom Pipeline instead.
+- I couldn't get `ParseIntPipe` to work with the fact that both parameters are optional, thus I had to manually build the validation. Usually I would dig deeper because I am sure this is a common scenario. If it does not exist out of the box by combining some pipes, I would probably write a Custom Pipeline instead.
   Note: Floats are truncated to an integer, I didn't want to spend too much time on such a detail, one could obviously also reject such a value.
 - I opted for a simple `limit`+`offset` approach. The major drawback of it is the degrading performance for very large
   tables. Judging from the mockup and how I expect the API to be used, I assume that a single user is not going to
