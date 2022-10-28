@@ -98,6 +98,9 @@ export class ServicesController {
     if (!createServiceDto.name) {
       createServiceDto.name = 'DefaultServiceName';
     }
+    if (!createServiceDto.versions) {
+      createServiceDto.versions = [];
+    }
     return this.servicesService.create(createServiceDto);
   }
 }

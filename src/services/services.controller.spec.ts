@@ -3,6 +3,7 @@ import { ServicesController } from './services.controller';
 import { ServicesService } from './services.service';
 import { ServicesRepositoryMock } from './__mocks/services.repository.mock';
 import { createMockService } from './entities/__mocks/Services.mock';
+import { createFindServiceDto } from './dto/__mocks__/FindServices.Dto.mock';
 
 const mockServiceMetadata = {
   count: 0,
@@ -29,17 +30,15 @@ describe('ServicesController', () => {
   });
 
   describe('getAll', () => {
-    it.each([[[]], [[createMockService({ collapsed: true })]]])(
-      'nests the service response in an object',
+    it.each([[[]], [[createFindServiceDto()]]])(
+      'returns the Dto as is',
       serviceReturn => {
-        jest.spyOn(servicesService, 'findAll').mockResolvedValue({
+        const expected = {
           ...mockServiceMetadata,
           services: serviceReturn,
-        });
-        expect(servicesController.getAll()).resolves.toEqual({
-          ...mockServiceMetadata,
-          services: serviceReturn,
-        });
+        };
+        jest.spyOn(servicesService, 'findAll').mockResolvedValue(expected);
+        expect(servicesController.getAll()).resolves.toEqual(expected);
       },
     );
     it('throws service errors', () => {

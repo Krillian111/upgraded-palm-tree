@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Service } from './entities/Service';
 import { FindManyOptions, Repository } from 'typeorm';
 import { CreateServiceDto } from './dto/CreateServiceDto';
+import { FindServicesDto } from './dto/FindServicesDto';
 
 @Injectable()
 export class ServicesService {
@@ -15,30 +16,35 @@ export class ServicesService {
     sortOrder?: ValidSortOrder;
     limit: number;
     offset: number;
-  }): Promise<{
-    services: Service[];
-    offset: number;
-    limit: number;
-    count: number;
-  }> {
+  }): Promise<FindServicesDto> {
     const countOptions: FindManyOptions<Service> = {
-      select: ['id', 'name', 'description', 'versions'],
+      select: ['id'],
     };
     if (params.exactName) {
       countOptions.where = { name: params.exactName };
     }
     const findOptions: FindManyOptions<Service> = {
       ...countOptions,
+      select: [...countOptions.select, 'name', 'description'],
       skip: params.offset,
       take: params.limit,
+      relations: ['versions'],
     };
     if (params.sortOrder) {
       findOptions.order = { name: params.sortOrder };
     }
     const count = await this.serviceRepo.count(countOptions);
     const services = await this.serviceRepo.find(findOptions);
+    const servicesWithVersionCount = services.map(service => ({
+      id: service.id,
+      name: service.name,
+      description: service.description,
+      updatedAt: service.updatedAt,
+      createdAt: service.createdAt,
+      versionCount: service.versions.length,
+    }));
     return {
-      services,
+      services: servicesWithVersionCount,
       count,
       limit: params.limit,
       offset: params.offset,
@@ -46,12 +52,14 @@ export class ServicesService {
   }
 
   async findById(id: number): Promise<Service> {
-    return this.serviceRepo.findOne(id);
+    return this.serviceRepo.findOne(id, {
+      relations: ['versions'],
+    });
   }
 
   async create(createServiceDto: CreateServiceDto): Promise<Service> {
-    const toCreate = this.serviceRepo.create(createServiceDto);
-    return await this.serviceRepo.save(toCreate);
+    const serviceToCreate = this.serviceRepo.create(createServiceDto);
+    return await this.serviceRepo.save(serviceToCreate);
   }
 }
 

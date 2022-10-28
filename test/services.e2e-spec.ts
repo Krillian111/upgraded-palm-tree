@@ -5,6 +5,10 @@ import { AppModule } from '../src/app.module';
 import { Repository } from 'typeorm';
 import { Service } from '../src/services/entities/Service';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import {
+  CreateServiceDto,
+  CreateVersionDto,
+} from '../src/services/dto/CreateServiceDto';
 
 const servicesMetadataMatcher = {
   offset: expect.any(Number),
@@ -16,16 +20,32 @@ const servicesMatcher = {
   id: expect.any(Number),
   name: expect.any(String),
   description: expect.any(String),
-  versions: expect.any(Number),
+  versionCount: expect.any(Number),
 };
 const matchIsoDate = expect.stringMatching(
   /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/,
 );
-const singleServiceMatcher = {
-  ...servicesMatcher,
+const versionMatcher = {
+  id: expect.any(Number),
+  label: expect.any(String),
+  environment: expect.any(String),
+  status: expect.any(String),
+  description: expect.any(String),
   createdAt: matchIsoDate,
   updatedAt: matchIsoDate,
 };
+const singleServiceMatcher = (versionCount: number) => ({
+  id: expect.any(Number),
+  name: expect.any(String),
+  description: expect.any(String),
+  versions: expect.arrayContaining(
+    new Array(versionCount)
+      .fill(null)
+      .map(() => expect.objectContaining(versionMatcher)),
+  ),
+  createdAt: matchIsoDate,
+  updatedAt: matchIsoDate,
+});
 
 describe('services', () => {
   const servicesPath = '/services';
@@ -41,7 +61,11 @@ describe('services', () => {
     serviceRepo = moduleFixture.get<Repository<Service>>(
       getRepositoryToken(Service),
     );
-    await serviceRepo.clear();
+    const services = await serviceRepo.find();
+    for (const service of services) {
+      await serviceRepo.delete(service.id);
+    }
+
     await app.init();
   });
   afterEach(async () => {
@@ -109,7 +133,6 @@ describe('services', () => {
       it.each([
         [{ sortOrder: 'ASC', expectedOrder: ['a', 'b', 'c'] }],
         [{ sortOrder: 'DESC', expectedOrder: ['c', 'b', 'a'] }],
-        [{ sortOrder: undefined, expectedOrder: ['a', 'c', 'b'] }],
       ])(
         'returns list of services sorted by name',
         async ({ sortOrder, expectedOrder }) => {
@@ -206,7 +229,16 @@ describe('services', () => {
   });
   describe('GET /services/:service_id', () => {
     it('returns all properties of a single service', async () => {
-      const postedService = { name: 'SingleService' };
+      const postedService = {
+        name: 'SingleService',
+        versions: [
+          {
+            label: 'SingleServiceV1',
+            status: 'Online',
+            description: 'Prod',
+          },
+        ],
+      };
       const postResponse = await request(app.getHttpServer())
         .post(servicesPath)
         .send(postedService);
@@ -215,8 +247,8 @@ describe('services', () => {
         .expect(200)
         .expect('content-type', 'application/json; charset=utf-8');
       expect(getResponse.body).toEqual({
-        ...singleServiceMatcher,
-        ...postedService,
+        ...singleServiceMatcher(1),
+        name: postedService.name,
       });
     });
     it('returns 404 for non-existing service', async () => {
@@ -236,13 +268,42 @@ describe('services', () => {
   });
   describe('POST /services', () => {
     it('creates a service', async () => {
-      const name = 'TestService';
+      const version1: CreateVersionDto = {
+        label: 'TestServiceV1',
+        status: 'Offline',
+        description: 'Replaced by V2 in 2021',
+      };
+      const version2: CreateVersionDto = {
+        label: 'TestServiceV2',
+        environment: 'Production',
+        status: 'Online',
+      };
+      const version3: CreateVersionDto = {
+        label: 'TestServiceV3',
+        environment: 'Staging',
+        status: 'Deploying',
+      };
+      const service: CreateServiceDto = {
+        name: 'TestService',
+        versions: [version1, version2, version3],
+      };
       const response = await request(app.getHttpServer())
         .post(servicesPath)
-        .send({ name })
+        .send(service)
         .expect(201)
         .expect('content-type', 'application/json; charset=utf-8');
-      expect(response.body).toEqual({ ...singleServiceMatcher, name });
+      expect(response.body).toEqual({
+        ...singleServiceMatcher(service.versions.length),
+        ...service,
+        versions: service.versions.map(version => ({
+          description: expect.any(String),
+          environment: expect.any(String),
+          ...version,
+          id: expect.any(Number),
+          updatedAt: matchIsoDate,
+          createdAt: matchIsoDate,
+        })),
+      });
     });
   });
 });

@@ -14,16 +14,24 @@ describe('ServicesService', () => {
     servicesService = app.get<ServicesService>(ServicesService);
   });
   describe('findAll', () => {
-    it.each([[[]], [[createMockService({ collapsed: true })]]])(
+    it.each([[[]], [[createMockService()]]])(
       'passes on what find returns',
-      repoReturn => {
+      servicesFromRepo => {
         jest
           .spyOn(ServicesRepositoryMock.instance, 'find')
-          .mockResolvedValue(repoReturn);
+          .mockResolvedValue(servicesFromRepo);
+        const expectedVersions = servicesFromRepo.map(service => {
+          const collapsedService = {
+            ...service,
+            versionCount: service.versions.length,
+          };
+          delete collapsedService.versions;
+          return collapsedService;
+        });
         expect(servicesService.findAll(standardParams)).resolves.toEqual({
           ...standardParams,
           count: ServicesRepositoryMock.count,
-          services: repoReturn,
+          services: expectedVersions,
         });
       },
     );
@@ -34,7 +42,7 @@ describe('ServicesService', () => {
       await servicesService.findAll(standardParams);
       expect(findSpy).toBeCalledWith(
         expect.objectContaining({
-          select: ['id', 'name', 'description', 'versions'],
+          select: ['id', 'name', 'description'],
         }),
       );
     });
@@ -92,7 +100,7 @@ describe('ServicesService', () => {
         .mockResolvedValue(expected);
       const id = 123;
       const actual = await servicesService.findById(id);
-      expect(findOneSpy).toBeCalledWith(id);
+      expect(findOneSpy).toBeCalledWith(id, { relations: ['versions'] });
       expect(actual).toEqual(expected);
     });
     it('resolves to undefined if no service is found', async () => {
@@ -101,7 +109,7 @@ describe('ServicesService', () => {
         .mockResolvedValue(undefined);
       const id = 123;
       const actual = await servicesService.findById(id);
-      expect(findOneSpy).toBeCalledWith(id);
+      expect(findOneSpy).toBeCalledWith(id, { relations: ['versions'] });
       expect(actual).toBeUndefined();
     });
   });

@@ -12,7 +12,7 @@ class ServicesRepository {
       id: 1,
       name: 'some-name',
       description: 'some-description',
-      versions: 2,
+      versions: [],
       createdAt: new Date(),
       updatedAt: new Date(),
     };

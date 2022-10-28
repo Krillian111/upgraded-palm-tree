@@ -2,31 +2,34 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
-  OneToMany,
+  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Version } from './Version';
+import { Service } from './Service';
 
 @Entity()
-export class Service {
+export class Version {
   @PrimaryGeneratedColumn('increment')
   id: number;
 
+  @ManyToOne(
+    () => Service,
+    service => service.versions,
+  )
+  service: Service;
+
   @Column('varchar', { length: 60 })
-  @Index({ unique: false })
-  name: string;
+  label: string;
+
+  @Column('varchar', { length: 60 })
+  status: string;
 
   @Column('varchar', { length: 200, default: '' })
   description: string;
 
-  @OneToMany(
-    () => Version,
-    version => version.service,
-    { onDelete: 'CASCADE', cascade: ['insert', 'update'] },
-  )
-  versions: Version[];
+  @Column('varchar', { length: 60, default: '' })
+  environment: string;
 
   @CreateDateColumn()
   createdAt: Date;
