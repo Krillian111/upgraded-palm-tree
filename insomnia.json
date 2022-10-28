@@ -1,0 +1,260 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2022-10-28T01:18:05.118Z",
+  "__export_source": "insomnia.desktop.app:v2022.6.0",
+  "resources": [
+    {
+      "_id": "req_0ee63a5610914e25bfb9d4220ea967d0",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666914250855,
+      "created": 1666832441702,
+      "url": "http://localhost:3000/services",
+      "name": "/services",
+      "description": "",
+      "method": "POST",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n\t\"name\":\"FooService\",\n\t\"versions\": [\n\t\t{\n\t\t\t\"label\": \"FooServiceV1\",\n\t\t\t\"environment\": \"Production\",\n\t\t\t\"status\": \"Online\"\n\t\t},\n\t\t{\n\t\t\t\"label\": \"FooServiceV2\",\n\t\t\t\"environment\": \"Staging\",\n\t\t\t\"status\": \"Offline\"\n\t\t}\n\t]\n}"
+      },
+      "parameters": [],
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json",
+          "id": "pair_4718d11494d642908d07c0728726c1a1"
+        }
+      ],
+      "authentication": {},
+      "metaSortKey": -1666832441702,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "wrk_210167830a394d27959d946aab96ec1f",
+      "parentId": null,
+      "modified": 1666832378432,
+      "created": 1666832378432,
+      "name": "upgraded-palm-tree",
+      "description": "",
+      "scope": "collection",
+      "_type": "workspace"
+    },
+    {
+      "_id": "req_12ab9810144d4b049926b39b1afadd5c",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666914250296,
+      "created": 1666832385451,
+      "url": "http://localhost:3000/services",
+      "name": "/services",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832413576.5,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_ec9b196549534af69f289d3ccb6e2cf1",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666897775570,
+      "created": 1666897679063,
+      "url": "http://localhost:3000/services",
+      "name": "/services sort",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_f90b2eeb9e1441b783113ef8980b2cc9",
+          "name": "sort",
+          "value": "DESC",
+          "description": ""
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832385401,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_c8dc844dc856434fb2969dcd0c060f80",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666897792247,
+      "created": 1666897770799,
+      "url": "http://localhost:3000/services",
+      "name": "/services filter by name",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_f90b2eeb9e1441b783113ef8980b2cc9",
+          "name": "filter",
+          "value": "TestService",
+          "description": ""
+        },
+        {
+          "id": "pair_586474e551ab4ffda3a11c30f561e44b",
+          "name": "",
+          "value": "",
+          "description": ""
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832385351,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_e8b852ed1b1f42dc969c3ab201e28132",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666919069312,
+      "created": 1666897802443,
+      "url": "http://localhost:3000/services",
+      "name": "/services pagination",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_f90b2eeb9e1441b783113ef8980b2cc9",
+          "name": "limit",
+          "value": "5",
+          "description": ""
+        },
+        {
+          "id": "pair_586474e551ab4ffda3a11c30f561e44b",
+          "name": "offset",
+          "value": "5",
+          "description": ""
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832385301,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_74402d2c8eae4646bfa34f8978fe8a06",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666919062911,
+      "created": 1666906768455,
+      "url": "http://localhost:3000/services/1",
+      "name": "/services/:id",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832385251,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "req_0ea0c915c1a34cc3b4b55ea4cf45d887",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666919060383,
+      "created": 1666919024973,
+      "url": "http://localhost:3000/services/1",
+      "name": "/services/:id expanded",
+      "description": "",
+      "method": "GET",
+      "body": {},
+      "parameters": [
+        {
+          "id": "pair_4978d5bc754c4cc6a868e02d952e3103",
+          "name": "expandVersions",
+          "value": "true",
+          "description": ""
+        }
+      ],
+      "headers": [],
+      "authentication": {},
+      "metaSortKey": -1666832385201,
+      "isPrivate": false,
+      "settingStoreCookies": true,
+      "settingSendCookies": true,
+      "settingDisableRenderRequestBody": false,
+      "settingEncodeUrl": true,
+      "settingRebuildPath": true,
+      "settingFollowRedirects": "global",
+      "_type": "request"
+    },
+    {
+      "_id": "env_06a93b32a293d0bf4ec8b171d137e976076bb6c5",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666832378438,
+      "created": 1666832378438,
+      "name": "Base Environment",
+      "data": {},
+      "dataPropertyOrder": null,
+      "color": null,
+      "isPrivate": false,
+      "metaSortKey": 1666832378439,
+      "_type": "environment"
+    },
+    {
+      "_id": "jar_06a93b32a293d0bf4ec8b171d137e976076bb6c5",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666832378441,
+      "created": 1666832378441,
+      "name": "Default Jar",
+      "cookies": [],
+      "_type": "cookie_jar"
+    },
+    {
+      "_id": "spc_d73b6edc2775422f84199137ca1910a8",
+      "parentId": "wrk_210167830a394d27959d946aab96ec1f",
+      "modified": 1666832378433,
+      "created": 1666832378433,
+      "fileName": "upgraded-palm-tree",
+      "contents": "",
+      "contentType": "yaml",
+      "_type": "api_spec"
+    }
+  ]
+}
